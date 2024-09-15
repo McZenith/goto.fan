@@ -127,7 +127,7 @@ export class LinkController {
                     // Handle both long and short video URLs
                     const videoId = tkPath[2] || parsedUrl.searchParams.get('video_id');
                     if (videoId) {
-                        appUrl = `tiktok://video/${videoId}`;
+                        appUrl = originalUrl;
                     }
                 } else if (tkPath[1] === 't') {
                     // Handle trending hashtag
@@ -172,7 +172,7 @@ export class LinkController {
                 } else if (fbPath[1] === 'marketplace') {
                     appUrl = 'fb://marketplace';
                 } else if (fbPath[1] === 'watch') {
-                    appUrl = 'fb://watch';
+                    appUrl = originalUrl;
                 } else if (fbPath[1] === 'photo.php') {
                     const photoId = parsedUrl.searchParams.get('fbid');
                     if (photoId) {
@@ -181,7 +181,7 @@ export class LinkController {
                 } else if (fbPath[1] === 'video.php') {
                     const videoId = parsedUrl.searchParams.get('v');
                     if (videoId) {
-                        appUrl = `fb://video/${videoId}`;
+                        appUrl = originalUrl;
                     }
                 } else if (fbPath[2] === 'posts') {
                     const postId = fbPath[3];
