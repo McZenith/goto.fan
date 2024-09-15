@@ -1,6 +1,6 @@
 import { Link } from '../models/link';
 import { UserInputError } from 'apollo-server-express';
-import { Analytics } from '../models/Analytics';
+import { Analytics } from '../models/analytics';
 import geoip from 'geoip-lite';
 import mongoose from 'mongoose';
 import { AggregationResult, AnalyticItem, LinkAnalytics } from '../types';
