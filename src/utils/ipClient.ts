@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { appConfig } from '../config';
+import { logger } from './logger';
 
 export function getClientIp(req: Request): string {
     // For testing: allow overriding IP with a custom header
@@ -24,6 +25,7 @@ export function getClientIp(req: Request): string {
 
     // Check if it's a loopback address
     if (ip === '::1' || ip === '127.0.0.1') {
+        logger.info("TRIPS: using default")
         return appConfig.testIP || 'Unknown';
     }
 
