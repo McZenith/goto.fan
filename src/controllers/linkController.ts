@@ -94,7 +94,6 @@ export class LinkController {
         let appUrl = originalUrl;
         const fallbackUrl = originalUrl;
 
-
         switch (hostname) {
             // Social Media
             case 'www.youtube.com':
@@ -120,13 +119,50 @@ export class LinkController {
                     appUrl = `instagram://user?username=${igPath[1]}`;
                 }
                 break;
+            case 'www.tiktok.com':
+            case 'tiktok.com':
+            case 'vm.tiktok.com': {
+                const tkPath = pathname.split('/');
+                if (tkPath[1] === 'video' || tkPath[1] === 'v') {
+                    // Handle both long and short video URLs
+                    const videoId = tkPath[2] || parsedUrl.searchParams.get('video_id');
+                    if (videoId) {
+                        appUrl = `tiktok://video/${videoId}`;
+                    }
+                } else if (tkPath[1] === 't') {
+                    // Handle trending hashtag
+                    const hashtag = tkPath[2];
+                    appUrl = `tiktok://challenge?name=${hashtag}`;
+                } else if (tkPath[1] === 'music') {
+                    const musicId = tkPath[2];
+                    appUrl = `tiktok://music/detail/${musicId}`;
+                } else if (tkPath[1] === 'tag') {
+                    const tag = tkPath[2];
+                    appUrl = `tiktok://tag/detail/${tag}`;
+                } else if (tkPath[1] === 'effects') {
+                    const effectId = tkPath[2];
+                    appUrl = `tiktok://effect/detail/${effectId}`;
+                } else if (tkPath[1].startsWith('@')) {
+                    const username = tkPath[1].slice(1);
+                    appUrl = `tiktok://user/@${username}`;
+                } else if (hostname === 'vm.tiktok.com') {
+                    appUrl = `tiktok://video/${tkPath[1]}`;
+                } else {
+                    // Default to opening TikTok app
+                    appUrl = 'tiktok://';
+                }
+                break;
+            }
+            // Facebook URLs
             case 'www.facebook.com':
             case 'facebook.com':
-            case 'm.facebook.com':
+            case 'm.facebook.com': {
                 const fbPath = pathname.split('/');
                 if (fbPath[1] === 'profile.php') {
                     const userId = parsedUrl.searchParams.get('id');
-                    appUrl = `fb://profile/${userId}`;
+                    if (userId) {
+                        appUrl = `fb://profile/${userId}`;
+                    }
                 } else if (fbPath[1] === 'groups') {
                     const groupId = fbPath[2];
                     appUrl = `fb://group/${groupId}`;
@@ -139,58 +175,25 @@ export class LinkController {
                     appUrl = 'fb://watch';
                 } else if (fbPath[1] === 'photo.php') {
                     const photoId = parsedUrl.searchParams.get('fbid');
-                    appUrl = `fb://photo/${photoId}`;
+                    if (photoId) {
+                        appUrl = `fb://photo/${photoId}`;
+                    }
                 } else if (fbPath[1] === 'video.php') {
                     const videoId = parsedUrl.searchParams.get('v');
-                    appUrl = `fb://video/${videoId}`;
+                    if (videoId) {
+                        appUrl = `fb://video/${videoId}`;
+                    }
                 } else if (fbPath[2] === 'posts') {
                     const postId = fbPath[3];
                     appUrl = `fb://post/${postId}`;
                 } else if (fbPath[1] && fbPath[1] !== '') {
-                    // Assuming it's a page or profile
                     appUrl = `fb://profile/${fbPath[1]}`;
                 } else {
                     // Default to opening Facebook app
                     appUrl = 'fb://feed';
                 }
                 break;
-
-            case 'www.tiktok.com':
-            case 'tiktok.com':
-            case 'vm.tiktok.com':
-                const tkPath = pathname.split('/');
-                if (tkPath[1] === 'video' || tkPath[1] === 'v') {
-                    // Handle both long and short video URLs
-                    const videoId = tkPath[2] || parsedUrl.searchParams.get('video_id');
-                    appUrl = `tiktok://video/${videoId}`;
-                } else if (tkPath[1] === 't') {
-                    // Handle trending hashtag
-                    const hashtag = tkPath[2];
-                    appUrl = `tiktok://challenge?name=${hashtag}`;
-                } else if (tkPath[1] === 'music') {
-                    // Handle music pages
-                    const musicId = tkPath[2];
-                    appUrl = `tiktok://music/detail/${musicId}`;
-                } else if (tkPath[1] === 'tag') {
-                    // Handle hashtag pages
-                    const tag = tkPath[2];
-                    appUrl = `tiktok://tag/detail/${tag}`;
-                } else if (tkPath[1] === 'effects') {
-                    // Handle effects pages
-                    const effectId = tkPath[2];
-                    appUrl = `tiktok://effect/detail/${effectId}`;
-                } else if (tkPath[1].startsWith('@')) {
-                    // Handle user profiles
-                    const username = tkPath[1].slice(1);
-                    appUrl = `tiktok://user/@${username}`;
-                } else if (hostname === 'vm.tiktok.com') {
-                    // Handle TikTok short links
-                    appUrl = `tiktok://video/${tkPath[1]}`;
-                } else {
-                    // Default to opening TikTok app
-                    appUrl = 'tiktok://';
-                }
-                break;
+            }
             case 'www.linkedin.com':
             case 'linkedin.com':
                 appUrl = `linkedin://${pathname}`;
