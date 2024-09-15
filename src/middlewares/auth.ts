@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { tokenService } from '../services/tokenService';
-import { IUser, User } from '../models/User';
+import { IUser, User } from '../models/user';
 
 
 interface AuthenticatedRequest extends Request {

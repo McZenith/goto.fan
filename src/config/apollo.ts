@@ -5,7 +5,7 @@ import { typeDefs } from '../schemas/typeDefs';
 import { resolvers } from '../schemas/resolvers';
 import { Context } from '../types';
 import { logger } from '../utils/logger';
-import { IUser } from '../models/User';
+import { IUser } from '../models/user';
 
 interface AuthenticatedRequest extends Express.Request {
     user?: IUser;

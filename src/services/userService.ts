@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { UserInputError } from 'apollo-server-express';
 import { tokenService } from './tokenService';
-import { User } from '../models/User';
+import { User } from '../models/user';
 
 export const userService = {
     async register({ username, email, password }: { username: string; email: string; password: string }) {

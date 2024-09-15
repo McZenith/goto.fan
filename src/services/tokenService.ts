@@ -1,11 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { BlacklistedToken } from '../models/blackListedToken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+import { appConfig } from '../config';
 
 export const tokenService = {
     generateToken(userId: string): string {
-        return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1d' });
+        return jwt.sign({ userId }, appConfig.jwtSecret, { expiresIn: '1d' });
     },
 
     async verifyToken(token: string): Promise<{ userId: string } | null> {
@@ -15,7 +14,7 @@ export const tokenService = {
                 return null;
             }
 
-            const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+            const decoded = jwt.verify(token, appConfig.jwtSecret) as { userId: string };
             return decoded;
         } catch (error) {
             return null;
