@@ -11,7 +11,8 @@
     "./package.json": "./package.json"
 },
     "scripts": {
-        "start": "node tsx src/index.ts",
+        "dev": "nodemon tsx src/index.ts",
+        "start": "tsx src/index.ts",
         "debug": "tsx src/index.ts",
         "build": "pkgroll --output public"
     },
