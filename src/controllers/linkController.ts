@@ -21,26 +21,7 @@ export class LinkController {
                 if (isMobile) {
                     const { appUrl, fallbackUrl } = LinkController.getAppAndFallbackUrls(url.originalUrl);
 
-                    // Render an HTML page with JavaScript to attempt deep linking
-                    res.send(`
-                        <html>
-                        <head>
-                            <title>Redirecting...</title>
-                            <script>
-                                function redirect() {
-                                    setTimeout(function() {
-                                        window.location = '${fallbackUrl}';
-                                    }, 2000); // Wait for 2 seconds before redirecting to the fallback URL
-                                    window.location = '${appUrl}';
-                                }
-                            </script>
-                        </head>
-                        <body onload="redirect()">
-                            <h2>Redirecting you to the app...</h2>
-                            <p>If you are not redirected, <a href="${fallbackUrl}">click here</a>.</p>
-                        </body>
-                        </html>
-                    `);
+                    res.redirect(appUrl);
                 } else {
                 // For non-mobile devices, redirect as usual
                     res.redirect(url.originalUrl);
