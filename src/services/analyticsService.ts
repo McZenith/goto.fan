@@ -5,6 +5,7 @@ import geoip from 'geoip-lite';
 import mongoose from 'mongoose';
 import { AggregationResult, AnalyticItem, LinkAnalytics } from '../types';
 import { getClientIp } from '../utils/ipClient';
+import { logger } from '../utils/logger';
 
 
 export const analyticsService = {
@@ -93,6 +94,8 @@ export const analyticsService = {
         try {
             // Get the real IP address
             const ip = getClientIp(req);
+            logger.log(req.ip);
+            console.log(req.ip);
 
             const userAgent = req.headers['user-agent'] || 'Unknown';
             const referer = req.headers.referer || req.headers.referrer || 'Direct';
