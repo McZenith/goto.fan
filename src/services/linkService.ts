@@ -4,6 +4,15 @@ import { UserInputError } from 'apollo-server-express';
 
 export const linkService = {
     async createLink(originalUrl: string, userId: string): Promise<ILink> {
+        // First, check if the user already has a link for this URL
+        const existingLink = await Link.findOne({ originalUrl, userId });
+
+        if (existingLink) {
+            // If a link already exists, return it
+            return existingLink;
+        }
+
+        // If no existing link, create a new one
         const shortUrl = nanoid(8);
         const link = new Link({ originalUrl, shortUrl, userId });
         await link.save();

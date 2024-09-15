@@ -94,8 +94,6 @@ export const analyticsService = {
         try {
             // Get the real IP address
             const ip = getClientIp(req);
-            logger.log(req.ip);
-            console.log(req.ip);
 
             const userAgent = req.headers['user-agent'] || 'Unknown';
             const referer = req.headers.referer || req.headers.referrer || 'Direct';
