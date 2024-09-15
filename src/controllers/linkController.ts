@@ -60,33 +60,60 @@ export class LinkController {
         }
     }
 
+    private static parseUrl(url: string): { hostname: string; pathname: string; searchParams: URLSearchParams } {
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(url);
+        } catch (error) {
+            // Fallback for environments where URL is not available
+            const match = url.match(/^(https?:\/\/)?([^\/]+)(\/[^?]*)?(.*)?$/i);
+            if (!match) {
+                throw new Error('Invalid URL');
+            }
+            const [, , hostname, pathname = '', search = ''] = match;
+            return {
+                hostname,
+                pathname,
+                searchParams: new URLSearchParams(search.slice(1))
+            };
+        }
+        return parsedUrl;
+    }
+
     private static getAppAndFallbackUrls(originalUrl: string): { appUrl: string, fallbackUrl: string } {
-        const parsedUrl = new URL(originalUrl);
-        const hostname = parsedUrl.hostname;
-        const path = parsedUrl.pathname;
+        let parsedUrl: { hostname: string; pathname: string; searchParams: URLSearchParams };
+        try {
+            parsedUrl = this.parseUrl(originalUrl);
+        } catch (error) {
+            console.error('Invalid URL:', originalUrl);
+            return { appUrl: originalUrl, fallbackUrl: originalUrl };
+        }
+
+        const { hostname, pathname } = parsedUrl;
 
         let appUrl = originalUrl;
         const fallbackUrl = originalUrl;
+
 
         switch (hostname) {
             // Social Media
             case 'www.youtube.com':
             case 'youtube.com':
             case 'youtu.be':
-                const videoId = parsedUrl.searchParams.get('v') || path.slice(1);
+                const videoId = parsedUrl.searchParams.get('v') || pathname.slice(1);
                 appUrl = `vnd.youtube://${videoId}`;
                 break;
             case 'www.twitter.com':
             case 'twitter.com':
-                if (path.includes('/status/')) {
-                    appUrl = `twitter://status${path}`;
+                if (pathname.includes('/status/')) {
+                    appUrl = `twitter://status${pathname}`;
                 } else {
-                    appUrl = `twitter://user?screen_name=${path.slice(1)}`;
+                    appUrl = `twitter://user?screen_name=${pathname.slice(1)}`;
                 }
                 break;
             case 'www.instagram.com':
             case 'instagram.com':
-                const igPath = path.split('/');
+                const igPath = pathname.split('/');
                 if (['p', 'tv', 'reel'].includes(igPath[1])) {
                     appUrl = `instagram://media?id=${igPath[2]}`;
                 } else {
@@ -95,31 +122,87 @@ export class LinkController {
                 break;
             case 'www.facebook.com':
             case 'facebook.com':
-                appUrl = `fb://facewebmodal/f?href=${encodeURIComponent(originalUrl)}`;
+            case 'm.facebook.com':
+                const fbPath = pathname.split('/');
+                if (fbPath[1] === 'profile.php') {
+                    const userId = parsedUrl.searchParams.get('id');
+                    appUrl = `fb://profile/${userId}`;
+                } else if (fbPath[1] === 'groups') {
+                    const groupId = fbPath[2];
+                    appUrl = `fb://group/${groupId}`;
+                } else if (fbPath[1] === 'events') {
+                    const eventId = fbPath[2];
+                    appUrl = `fb://event/${eventId}`;
+                } else if (fbPath[1] === 'marketplace') {
+                    appUrl = 'fb://marketplace';
+                } else if (fbPath[1] === 'watch') {
+                    appUrl = 'fb://watch';
+                } else if (fbPath[1] === 'photo.php') {
+                    const photoId = parsedUrl.searchParams.get('fbid');
+                    appUrl = `fb://photo/${photoId}`;
+                } else if (fbPath[1] === 'video.php') {
+                    const videoId = parsedUrl.searchParams.get('v');
+                    appUrl = `fb://video/${videoId}`;
+                } else if (fbPath[2] === 'posts') {
+                    const postId = fbPath[3];
+                    appUrl = `fb://post/${postId}`;
+                } else if (fbPath[1] && fbPath[1] !== '') {
+                    // Assuming it's a page or profile
+                    appUrl = `fb://profile/${fbPath[1]}`;
+                } else {
+                    // Default to opening Facebook app
+                    appUrl = 'fb://feed';
+                }
                 break;
+
             case 'www.tiktok.com':
             case 'tiktok.com':
-                const tkPath = path.split('/');
-                if (tkPath[1] === 'video') {
-                    appUrl = `tiktok://video/${tkPath[2]}`;
+            case 'vm.tiktok.com':
+                const tkPath = pathname.split('/');
+                if (tkPath[1] === 'video' || tkPath[1] === 'v') {
+                    // Handle both long and short video URLs
+                    const videoId = tkPath[2] || parsedUrl.searchParams.get('video_id');
+                    appUrl = `tiktok://video/${videoId}`;
+                } else if (tkPath[1] === 't') {
+                    // Handle trending hashtag
+                    const hashtag = tkPath[2];
+                    appUrl = `tiktok://challenge?name=${hashtag}`;
+                } else if (tkPath[1] === 'music') {
+                    // Handle music pages
+                    const musicId = tkPath[2];
+                    appUrl = `tiktok://music/detail/${musicId}`;
+                } else if (tkPath[1] === 'tag') {
+                    // Handle hashtag pages
+                    const tag = tkPath[2];
+                    appUrl = `tiktok://tag/detail/${tag}`;
+                } else if (tkPath[1] === 'effects') {
+                    // Handle effects pages
+                    const effectId = tkPath[2];
+                    appUrl = `tiktok://effect/detail/${effectId}`;
                 } else if (tkPath[1].startsWith('@')) {
-                    appUrl = `tiktok://user/@${tkPath[1].slice(1)}`;
+                    // Handle user profiles
+                    const username = tkPath[1].slice(1);
+                    appUrl = `tiktok://user/@${username}`;
+                } else if (hostname === 'vm.tiktok.com') {
+                    // Handle TikTok short links
+                    appUrl = `tiktok://video/${tkPath[1]}`;
                 } else {
+                    // Default to opening TikTok app
                     appUrl = 'tiktok://';
                 }
                 break;
             case 'www.linkedin.com':
             case 'linkedin.com':
-                appUrl = `linkedin://${path}`;
+                appUrl = `linkedin://${pathname}`;
                 break;
             case 'www.pinterest.com':
             case 'pinterest.com':
-                appUrl = `pinterest://${path}`;
+                appUrl = `pinterest://${pathname}`;
                 break;
             case 'www.snapchat.com':
             case 'snapchat.com':
-                if (path.startsWith('/add/')) {
-                    appUrl = `snapchat://add/${path.split('/')[2]}`;
+                if (pathname.startsWith('/add/')) {
+                    appUrl = `snapchat://add/${pathname.split('/')[2]}`;
                 } else {
                     appUrl = 'snapchat://';
                 }
@@ -128,10 +211,10 @@ export class LinkController {
             // Content Creation and Streaming
             case 'www.twitch.tv':
             case 'twitch.tv':
-                appUrl = `twitch://stream/${path.slice(1)}`;
+                appUrl = `twitch://stream/${pathname.slice(1)}`;
                 break;
             case 'medium.com':
-                appUrl = `medium://${path}`;
+                appUrl = `medium://${pathname}`;
                 break;
             case 'www.spotify.com':
             case 'open.spotify.com':
@@ -139,13 +222,13 @@ export class LinkController {
                 break;
             case 'www.soundcloud.com':
             case 'soundcloud.com':
-                appUrl = `soundcloud://${path}`;
+                appUrl = `soundcloud://${pathname}`;
                 break;
 
             // E-commerce
             case 'www.amazon.com':
             case 'amazon.com':
-                const asin = path.split('/dp/')[1]?.split('/')[0];
+                const asin = pathname.split('/dp/')[1]?.split('/')[0];
                 if (asin) {
                     appUrl = `com.amazon.mobile.shopping://www.amazon.com/dp/${asin}`;
                 } else {
@@ -154,11 +237,11 @@ export class LinkController {
                 break;
             case 'www.etsy.com':
             case 'etsy.com':
-                appUrl = `etsy://${path}`;
+                appUrl = `etsy://${pathname}`;
                 break;
             case 'www.ebay.com':
             case 'ebay.com':
-                appUrl = `ebay://${path}`;
+                appUrl = `ebay://${pathname}`;
                 break;
 
             // Ride-sharing and Food Delivery
@@ -185,17 +268,17 @@ export class LinkController {
             // Productivity and Communication
             case 'www.dropbox.com':
             case 'dropbox.com':
-                appUrl = `dbx${path}`;
+                appUrl = `dbx${pathname}`;
                 break;
             case 'www.evernote.com':
             case 'evernote.com':
-                appUrl = `evernote://${path}`;
+                appUrl = `evernote://${pathname}`;
                 break;
             case 'trello.com':
-                appUrl = `trello://${path}`;
+                appUrl = `trello://${pathname}`;
                 break;
             case 'slack.com':
-                appUrl = `slack://${path}`;
+                appUrl = `slack://${pathname}`;
                 break;
             case 'zoom.us':
                 const meetingId = parsedUrl.searchParams.get('meetingId');
@@ -209,21 +292,21 @@ export class LinkController {
             // Travel and Local
             case 'www.airbnb.com':
             case 'airbnb.com':
-                appUrl = `airbnb://${path}`;
+                appUrl = `airbnb://${pathname}`;
                 break;
             case 'www.yelp.com':
             case 'yelp.com':
-                appUrl = `yelp://${path}`;
+                appUrl = `yelp://${pathname}`;
                 break;
             case 'www.tripadvisor.com':
             case 'tripadvisor.com':
-                appUrl = `tripadvisor://${path}`;
+                appUrl = `tripadvisor://${pathname}`;
                 break;
 
             // Finance
             case 'www.paypal.com':
             case 'paypal.com':
-                appUrl = `paypal://${path}`;
+                appUrl = `paypal://${pathname}`;
                 break;
             case 'venmo.com':
                 appUrl = `venmo://`;
@@ -232,8 +315,8 @@ export class LinkController {
             // Other
             case 'www.wikipedia.org':
             case 'wikipedia.org':
-                const lang = path.split('/')[1];
-                const title = path.split('/')[2];
+                const lang = pathname.split('/')[1];
+                const title = pathname.split('/')[2];
                 appUrl = `wikipedia://${lang}/article/${title}`;
                 break;
 
