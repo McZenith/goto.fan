@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "GraphQL server for Linkly URL shortener",
     "main": "index.ts",
+    "engines": {
+    "node": "20.x"
+  },
     "exports": {
     ".": "./dist/index.js",    
     "./package.json": "./package.json"
