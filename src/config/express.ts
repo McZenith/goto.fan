@@ -12,7 +12,7 @@ export const createExpressApp = (): express.Application => {
 
     // Configure CORS to allow Apollo Sandbox
     app.use(cors({
-        origin: ['https://studio.apollographql.com', 'http://localhost:4000'],
+        origin: ['https://studio.apollographql.com', 'http://localhost:4000', "https://gotograph-b2b73620312a.herokuapp.com"],
         credentials: true,
     }));
 
