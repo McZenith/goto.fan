@@ -18,7 +18,7 @@ export const createExpressApp = (): express.Application => {
 
     // Configure Helmet, but allow Apollo Sandbox
     app.use(helmet({
-        contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+        contentSecurityPolicy: false,
         crossOriginEmbedderPolicy: false,
     }));
 
